@@ -1,0 +1,1003 @@
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site de génération des PV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 16px;
+            margin: 10px auto;
+            display: block;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        input[type="date"],
+        select,
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .step {
+            margin-top: 20px;
+        }
+
+        #pdfImages img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        #pdfImages {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .logo-upload {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+}
+
+.logo-preview {
+    max-width: 200px;
+    max-height: 100px;
+    margin: 10px auto;
+    display: none;
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 5px;
+}
+.logo-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .size-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .size-btn:hover {
+            background: #0056b3;
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        .size-btn:active {
+            transform: scale(0.95);
+        }
+
+        #sizeDisplay {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 60px;
+            text-align: center;
+            color: #333;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+/* Ajouter cette media query pour le responsive */
+@media (max-width: 600px) {
+    .logo-upload {
+        margin: 10px;
+        padding: 10px;
+    }
+    
+    .logo-preview {
+        max-width: 150px;
+    }
+}
+        .section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        textarea {
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            background-color: #fefefe;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .personnel-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .add-personnel {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            color: #0056b3;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px dashed #0056b3;
+            border-radius: 5px;
+        }
+
+        .add-personnel:hover {
+            background-color: #f0f8ff;
+        }
+
+        .role-input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
+
+        .remove-role {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+            padding: 0 8px;
+        }
+
+        .remove-role:hover {
+            color: #bb2d3b;
+        }
+
+        .editable-title {
+            cursor: pointer;
+            border-bottom: 2px dashed transparent;
+            transition: all 0.3s;
+        }
+
+        .editable-title:hover {
+            border-color: #007bff;
+        }
+
+        .editable-title:focus {
+            outline: none;
+            border-bottom: 2px solid #007bff;
+        }
+
+        @media (min-width: 768px) {
+            #pdfImages img {
+                width: 75%;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #pdfImages img {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            button {
+                width: 100%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body onload="loadData()">
+    <div class="container">
+        <div class="logo-upload">
+            <input type="file" id="logoInput" accept="image/*" onchange="previewLogo(event)">
+            <img id="logoPreview" class="logo-preview" alt="Aperçu du logo">
+            <!-- Ajout des boutons de contrôle -->
+            <div class="logo-controls">
+                <button class="size-btn" onclick="adjustLogoSize(-0.1)">-</button>
+                <span id="sizeDisplay">100%</span>
+                <button class="size-btn" onclick="adjustLogoSize(0.1)">+</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Bienvenue dans le Systéme de Génération des PV du Chantier</h1>
+        <button id="startButton">Commencer</button>
+
+        <div id="daySelection" class="hidden step">
+            <h2>Choisissez le jour du PV :</h2>
+            <input type="date" id="inspectionDate" required="">
+            <button id="continueDayButton">Continuer</button>
+        </div>
+
+        <div id="section2" class="hidden step">
+            <h3 class="editable-title" id="descriptionProjetTitle" contenteditable="true">Description du Projet</h3>
+            <div class="section">
+                <label for="nomProjet">Nom du projet :</label>
+                <input type="text" id="nomProjet">
+                <label for="entreprise">Entreprise :</label>
+                <input type="text" id="entreprise">
+                <label for="maitreOuvrage">Maître d'ouvrage :</label>
+                <input type="text" id="maitreOuvrage">
+                <label for="bureauSuivi">Bureau de suivi :</label>
+                <input type="text" id="bureauSuivi">
+                <label for="commune">Commune :</label>
+                <input type="text" id="commune">
+            </div>
+
+            <h3 class="title editable-title" id="avancementTitle" contenteditable="true">Avancement Actuel des Travaux</h3>
+            <div class="section">
+                <textarea id="avancement" rows="4" placeholder="Décrivez l'avancement actuel..."></textarea>
+            </div>
+
+            <h3 class="title editable-title" id="personnelTitle" contenteditable="true">Liste des Personnes Présentes</h3>
+            <div class="section" id="personnelSection">
+                <div id="personnelList"><div class="personnel-item">
+                    <input type="text" class="role-input" value="sdsd" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="3">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="fsf" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="5">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="dds" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="7">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="dkj" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="8">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="dkjfjd" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="9">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="dkfjd" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="878">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="jcjcx" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="989">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="js" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="989">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="kjs" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="87">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div></div>
+                <div class="add-personnel" onclick="addPersonnelField()">
+                    <span>+</span> Ajouter un autre personnel
+                </div>
+            </div>
+
+            <h3 class="editable-title" id="stockTitle" contenteditable="true">État du Stock sur Chantier</h3>
+            <div class="section" id="stockSection">
+                <div id="stockList"><div class="personnel-item">
+                    <input type="text" class="role-input" value="dkfjd" placeholder="Nom de l'article">
+                    <input type="text" placeholder="Quantité" value="878">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="jcjcx" placeholder="Nom de l'article">
+                    <input type="text" placeholder="Quantité" value="989">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="js" placeholder="Nom de l'article">
+                    <input type="text" placeholder="Quantité" value="989">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div><div class="personnel-item">
+                    <input type="text" class="role-input" value="kjs" placeholder="Nom de l'article">
+                    <input type="text" placeholder="Quantité" value="87">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                </div></div>
+                <div class="add-personnel" onclick="addStockField()">
+                    <span>+</span> Ajouter un article
+                </div>
+            </div>
+
+            <h3 class="editable-title" id="planificationTitle" contenteditable="true">Planification des Travaux à Venir</h3>
+            <textarea id="planification" rows="4"></textarea>
+
+            <h3 class="editable-title" id="progressionTitle" contenteditable="true">État de Progression et Lacunes des Travaux</h3>
+            <textarea id="progression" rows="4"></textarea>
+
+            <h3 class="editable-title" id="detailsActivitesTitle" contenteditable="true">Détails des Activités sur Chantier</h3>
+            <textarea id="detailsActivites" rows="4"></textarea>
+
+            <h1>Ajoutez les Images </h1>
+            <input type="file" id="photo1" accept="image/*">
+            <input type="text" id="caption1" placeholder="Légende pour la photo 1">
+            <input type="file" id="photo2" accept="image/*">
+            <input type="text" id="caption2" placeholder="Légende pour la photo 2">
+            <input type="file" id="photo3" accept="image/*">
+            <input type="text" id="caption3" placeholder="Légende pour la photo 3">
+            <input type="file" id="photo4" accept="image/*">
+            <input type="text" id="caption4" placeholder="Légende pour la photo 4">
+
+            <button onclick="enregistrer()">Enregistrer le PV</button>
+            <button id="previewPdfButton" style="display:none;">Aperçu du PDF</button>
+            <button id="sendPdfButton" style="display:none;">Télécharger le pdf</button>
+            <button id="generatePdfButton">Générer le PDF</button>
+            <div id="pdfImages"></div>
+        </div>
+
+        <div id="pdfPreview" style="display: none;">
+            <div id="pdfImages"></div>
+        </div>
+        <div id="pdfSection"></div>
+
+        <script>
+
+// Nouvelle variable pour stocker la taille du logo
+let logoScale = 1.0;
+
+// Fonction pour ajuster la taille du logo
+function adjustLogoSize(delta) {
+    logoScale = Math.max(0.5, Math.min(2.0, logoScale + delta));
+    document.getElementById('sizeDisplay').textContent = 
+        Math.round(logoScale * 100) + '%';
+}
+
+
+            function previewLogo(event) {
+                const input = event.target;
+                const preview = document.getElementById('logoPreview');
+                
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        
+            function addPersonnelField(role = '', count = '') {
+                const personnelList = document.getElementById('personnelList');
+                const newItem = document.createElement('div');
+                newItem.className = 'personnel-item';
+                newItem.innerHTML = `
+                    <input type="text" class="role-input" value="${role}" placeholder="Nom du rôle">
+                    <input type="number" placeholder="Nombre" value="${count}">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                `;
+                personnelList.appendChild(newItem);
+            }
+        
+            function addStockField(name = '', quantity = '') {
+                const stockList = document.getElementById('stockList');
+                const newItem = document.createElement('div');
+                newItem.className = 'personnel-item';
+                newItem.innerHTML = `
+                    <input type="text" class="role-input" value="${name}" placeholder="Nom de l'article">
+                    <input type="text" placeholder="Quantité" value="${quantity}">
+                    <span class="remove-role" onclick="this.parentElement.remove()">×</span>
+                `;
+                stockList.appendChild(newItem);
+            }
+        
+           // Modification de la fonction enregistrer() pour sauvegarder la taille du logo
+        function enregistrer() {
+            const logoInput = document.getElementById('logoInput');
+            const reader = new FileReader();
+        
+            if(logoInput.files[0]) {
+                reader.readAsDataURL(logoInput.files[0]);
+            }
+        
+            const personnelData = [];
+            const stockData = [];
+            
+            document.querySelectorAll('#personnelList .personnel-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if(inputs[0].value.trim()) {
+                    personnelData.push({
+                        role: inputs[0].value,
+                        count: inputs[1].value
+                    });
+                }
+            });
+        
+            document.querySelectorAll('#stockList .personnel-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if(inputs[0].value.trim()) {
+                    stockData.push({
+                        name: inputs[0].value,
+                        quantity: inputs[1].value
+                    });
+                }
+            });
+        
+            const data = {
+                logo: reader.result || document.getElementById('logoPreview').src,
+                logoScale: logoScale, // Sauvegarde de l'échelle du logo
+                nomProjet: document.getElementById('nomProjet').value,
+                entreprise: document.getElementById('entreprise').value,
+                maitreOuvrage: document.getElementById('maitreOuvrage').value,
+                bureauSuivi: document.getElementById('bureauSuivi').value,
+                commune: document.getElementById('commune').value,
+                avancement: document.getElementById('avancement').value,
+                personnel: personnelData,
+                stock: stockData,
+                planification: document.getElementById('planification').value,
+                progression: document.getElementById('progression').value,
+                detailsActivites: document.getElementById('detailsActivites').value,
+                descriptionProjetTitle: document.getElementById('descriptionProjetTitle').textContent,
+                avancementTitle: document.getElementById('avancementTitle').textContent,
+                personnelTitle: document.getElementById('personnelTitle').textContent,
+                stockTitle: document.getElementById('stockTitle').textContent,
+                planificationTitle: document.getElementById('planificationTitle').textContent,
+                progressionTitle: document.getElementById('progressionTitle').textContent,
+                detailsActivitesTitle: document.getElementById('detailsActivitesTitle').textContent
+            };
+        
+            localStorage.setItem('pvData', JSON.stringify(data));
+            alert('Données enregistrées avec succès.');
+        }
+        function loadData() {
+            const savedData = localStorage.getItem('pvData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                if(data.logo) {
+                    document.getElementById('logoPreview').src = data.logo;
+                    document.getElementById('logoPreview').style.display = 'block';
+                }
+
+                if(data.logoScale) {
+                    logoScale = data.logoScale;
+                    document.getElementById('sizeDisplay').textContent = 
+                        Math.round(logoScale * 100) + '%';
+                }
+                    document.getElementById('nomProjet').value = data.nomProjet || '';
+                    document.getElementById('entreprise').value = data.entreprise || '';
+                    document.getElementById('maitreOuvrage').value = data.maitreOuvrage || '';
+                    document.getElementById('bureauSuivi').value = data.bureauSuivi || '';
+                    document.getElementById('commune').value = data.commune || '';
+                    document.getElementById('avancement').value = data.avancement || '';
+        
+                    document.getElementById('descriptionProjetTitle').textContent = data.descriptionProjetTitle || 'Description du Projet';
+                    document.getElementById('avancementTitle').textContent = data.avancementTitle || 'Avancement Actuel des Travaux';
+                    document.getElementById('personnelTitle').textContent = data.personnelTitle || 'Liste des Personnes Présentes';
+                    document.getElementById('stockTitle').textContent = data.stockTitle || 'État du Stock sur Chantier';
+                    document.getElementById('planificationTitle').textContent = data.planificationTitle || 'Planification des Travaux à Venir';
+                    document.getElementById('progressionTitle').textContent = data.progressionTitle || 'État de Progression et Lacunes des Travaux';
+                    document.getElementById('detailsActivitesTitle').textContent = data.detailsActivitesTitle || 'Détails des Activités sur Chantier';
+        
+                    const personnelList = document.getElementById('personnelList');
+                    personnelList.innerHTML = '';
+                    if(data.personnel) {
+                        data.personnel.forEach(person => {
+                            addPersonnelField(person.role, person.count);
+                        });
+                    }
+        
+                    const stockList = document.getElementById('stockList');
+                    stockList.innerHTML = '';
+                    if(data.stock) {
+                        data.stock.forEach(item => {
+                            addStockField(item.name, item.quantity);
+                        });
+                    }
+        
+                    document.getElementById('planification').value = data.planification || '';
+                    document.getElementById('progression').value = data.progression || '';
+                    document.getElementById('detailsActivites').value = data.detailsActivites || '';
+                }
+            }
+        
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+        
+            document.getElementById('startButton').addEventListener('click', () => {
+                document.getElementById('daySelection').classList.remove('hidden');
+                document.getElementById('startButton').classList.add('hidden');
+            });
+        
+            document.getElementById('continueDayButton').addEventListener('click', () => {
+                const selectedDate = document.getElementById('inspectionDate').value;
+                if (selectedDate) {
+                    document.getElementById('section2').classList.remove('hidden');
+                    document.getElementById('daySelection').classList.add('hidden');
+                } else {
+                    alert('Veuillez sélectionner une date pour continuer.');
+                }
+            });
+        
+            document.getElementById('generatePdfButton').addEventListener('click', () => {
+                let generatedPdfBlob = null;
+                const date = document.getElementById('inspectionDate').value;
+        
+                async function generatePdf() {
+                    const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ 
+                format: 'a4', 
+                unit: 'mm',
+                compress: true // Activation de la compression PDF
+            });
+        
+                    function formatDate(dateString) {
+                        const date = new Date(dateString);
+                        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                        return date.toLocaleDateString('fr-FR', options);
+                    }
+        
+                    const formattedDate = formatDate(date);
+                    const margin = 25;
+                    const bottomMargin = 25;
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+        
+                    function addNewPage() {
+                        doc.addPage();
+                        doc.setLineWidth(0.1);
+                        doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+                    }
+        
+                    // Gestion du logo et filigrane
+                    const logoInput = document.getElementById('logoInput');
+                    const savedData = JSON.parse(localStorage.getItem('pvData'));
+                  
+                    if(savedData?.logo) {
+                try {
+                    const logoImg = new Image();
+                    await new Promise((resolve, reject) => {
+                        logoImg.onload = resolve;
+                        logoImg.onerror = reject;
+                        logoImg.src = savedData.logo;
+                    });
+
+                    // Application de l'échelle sauvegardée
+                    const baseLogoWidth = 40;
+                    const logoWidth = baseLogoWidth * savedData.logoScale;
+                    const logoHeight = (logoWidth * logoImg.height) / logoImg.width;
+                    
+                    doc.addImage(logoImg, 'PNG', 
+                        (doc.internal.pageSize.getWidth() - logoWidth)/2, 
+                        13,
+                        logoWidth, 
+                        logoHeight
+                    );
+
+                    // Application de l'échelle pour le filigrane
+                    const baseWatermarkSize = 80;
+                    const watermarkSize = baseWatermarkSize * savedData.logoScale;
+                    const x = (doc.internal.pageSize.getWidth() - watermarkSize)/2;
+                    const y = (doc.internal.pageSize.getHeight() - watermarkSize)/2;
+                    
+                    doc.setGState(new doc.GState({ opacity: 0.1 }));
+                    doc.addImage(logoImg, 'PNG', x, y, watermarkSize, watermarkSize);
+                    doc.setGState(new doc.GState({ opacity: 1 }));
+
+                } catch(e) {
+                    console.error('Erreur de chargement du logo', e);
+                }
+            }
+
+        
+                    doc.setFont("Times", "normal");
+                    doc.setFontSize(14);
+                    doc.setFont("Times", "bold");
+                    doc.text(`Rapport journalier du : ${formattedDate}`, margin, margin + 37);
+
+                    doc.setLineWidth(0.1);
+                    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+                    const personnelData = savedData.personnel || [];
+                    const stockData = savedData.stock || [];
+
+                    const nomProjet = document.getElementById('nomProjet').value;
+                    const entreprise = document.getElementById('entreprise').value;
+                    const maitreOuvrage = document.getElementById('maitreOuvrage').value;
+                    const bureauSuivi = document.getElementById('bureauSuivi').value;
+                    const commune = document.getElementById('commune').value;
+                    const avancement = document.getElementById('avancement').value;
+
+                    const descriptionProjetTitle = savedData?.descriptionProjetTitle || 'Description du Projet';
+                    const avancementTitle = savedData?.avancementTitle || 'Avancement Actuel des Travaux';
+                    const personnelTitle = savedData?.personnelTitle || 'Liste des Personnes Présentes';
+                    const stockTitle = savedData?.stockTitle || 'État du Stock sur Chantier';
+                    const planificationTitle = savedData?.planificationTitle || 'Planification des activités à venir';
+                    const progressionTitle = savedData?.progressionTitle || 'État, progression et lacunes des travaux';
+                    const detailsActivitesTitle = savedData?.detailsActivitesTitle || 'Détails des activités sur chantier';
+
+                    const tableData = [
+                        [{ content: descriptionProjetTitle, rowSpan: 5, styles: { halign: 'center', valign: 'middle' } }, 'Nom du Projet', nomProjet],
+                        ['Entreprise', entreprise],
+                        ['Maître d\'ouvrage', maitreOuvrage],
+                        ['Bureau de suivi', bureauSuivi],
+                        ['Commune', commune],
+                        [avancementTitle, { content: avancement, colSpan: 2, styles: { halign: 'left' }}],
+                    ];
+
+                    if(personnelData.length > 0) {
+                        tableData.push([
+                            { 
+                                content: personnelTitle, 
+                                rowSpan: personnelData.length, 
+                                styles: { halign: 'center', valign: 'middle' } 
+                            }, 
+                            personnelData[0].role, 
+                            personnelData[0].count
+                        ]);
+                        
+                        for(let i = 1; i < personnelData.length; i++) {
+                            tableData.push([
+                                personnelData[i].role, 
+                                personnelData[i].count
+                            ]);
+                        }
+                    }
+
+                    if(stockData.length > 0) {
+                        tableData.push([
+                            { 
+                                content: stockTitle, 
+                                rowSpan: stockData.length, 
+                                styles: { halign: 'center', valign: 'middle' } 
+                            }, 
+                            stockData[0].name, 
+                            stockData[0].quantity
+                        ]);
+                        
+                        for(let i = 1; i < stockData.length; i++) {
+                            tableData.push([
+                                stockData[i].name, 
+                                stockData[i].quantity
+                            ]);
+                        }
+                    }
+
+                    tableData.push(
+                        [planificationTitle, { content: savedData.planification || '', colSpan: 2, styles: { halign: 'left' }}],
+                        [progressionTitle, { content: savedData.progression || '', colSpan: 2, styles: { halign: 'left' }}],
+                        [detailsActivitesTitle, { content: savedData.detailsActivites || '', colSpan: 2, styles: { halign: 'left' }}]
+                    );
+
+                    doc.autoTable({
+                        body: tableData,
+                        theme: 'grid',
+                        styles: {
+                            cellPadding: 0.5,
+                            fontSize: 11,
+                            halign: 'center',
+                            valign: 'middle',
+                            lineWidth: 0.2,
+                            lineColor: [169,169,169],
+                            fillColor: false,
+                            textColor: [0,0,0],
+                            font: "times",
+                            overflow: 'linebreak',
+                            lineHeight: 1.2
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 45 },
+                            1: { cellWidth: 60 },
+                            2: { cellWidth: 65 }
+                        },
+                        margin: { top: 15, right: 20, bottom: bottomMargin, left: 20 },
+                        startY: margin + 45,
+                        pageBreak: 'auto',
+                    });
+
+                    const totalPages = doc.internal.getNumberOfPages();
+
+                    let yPosition;
+                    if (totalPages == 1) {
+                        addNewPage();
+                        yPosition = 25;
+                    } else {
+                        yPosition = doc.lastAutoTable.finalY + 10;
+                    }
+
+                    doc.setFontSize(14);
+                    doc.setFont("Times", "bold");
+                    doc.text("Photos du chantier", 20, yPosition);
+                    yPosition += 15;
+
+                    const images = [
+                        { file: document.getElementById('photo1').files[0], caption: document.getElementById('caption1').value },
+                        { file: document.getElementById('photo2').files[0], caption: document.getElementById('caption2').value },
+                        { file: document.getElementById('photo3').files[0], caption: document.getElementById('caption3').value },
+                        { file: document.getElementById('photo4').files[0], caption: document.getElementById('caption4').value }
+                    ];
+
+                    async function resizeImage(file) {
+                        const img = new Image();
+                        const reader = new FileReader();
+                        return new Promise((resolve) => {
+                            reader.onload = function(event) {
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+
+                                    const maxWidth = 800;
+                                    const maxHeight = 800;
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > height) {
+                                        if (width > maxWidth) {
+                                            height *= maxWidth / width;
+                                            width = maxWidth;
+                                        }
+                                    } else {
+                                        if (height > maxHeight) {
+                                            width *= maxHeight / height;
+                                            height = maxHeight;
+                                        }
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        if (blob.size > 400 * 1024) {
+                                            canvas.toBlob((newBlob) => {
+                                                resolve(newBlob);
+                                            }, 'image/jpeg', 0.4);
+                                        } else {
+                                            resolve(blob);
+                                        }
+                                    }, 'image/jpeg', 0.5);
+                                };
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+
+                    const imageSize = 65;
+                    const spaceBetweenImages = 14;
+                    const imagesPerRow = 2;
+                    let maxImageY = yPosition;
+
+                    const imagePromises = images.map((imageData, index) => {
+                        return new Promise(async (resolve) => {
+                            if (imageData.file) {
+                                const compressedBlob = await resizeImage(imageData.file);
+                                const imgData = await new Promise((resolveImg) => {
+                                    const reader = new FileReader();
+                                    reader.onload = function(event) {
+                                        resolveImg(event.target.result);
+                                    };
+                                    reader.readAsDataURL(compressedBlob);
+                                });
+
+                                const rowIndex = Math.floor(index / imagesPerRow);
+                                const colIndex = index % imagesPerRow;
+                                const xPosition = margin + colIndex * (imageSize + 20);
+                                const yPositionForImage = yPosition + rowIndex * (imageSize + spaceBetweenImages + 20);
+
+                                doc.setDrawColor(0, 0, 0);
+                                doc.setLineWidth(0.4);
+                                doc.rect(xPosition - 0.4, yPositionForImage - 0.4, imageSize + 0.8, imageSize + 0.8);
+
+                                doc.addImage(imgData, 'JPEG', xPosition, yPositionForImage, imageSize, imageSize);
+
+                                const captionYPosition = yPositionForImage + imageSize + 8;
+                                const captionText = `Figure ${index + 1} : ${imageData.caption ? imageData.caption : ''}`;
+
+                                doc.setTextColor(0, 100, 0);
+                                doc.setFontSize(12);
+                                doc.setFont("Helvetica", "italic");
+                                const captionXPosition = xPosition + (imageSize / 2) - (doc.getTextWidth(captionText) / 2);
+                                doc.text(captionText, captionXPosition, captionYPosition);
+
+                                if (captionYPosition > maxImageY) {
+                                    maxImageY = captionYPosition;
+                                }
+                                resolve();
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+
+                    Promise.all(imagePromises).then(() => {
+                        let finalY = maxImageY + 20;
+                        doc.setFontSize(11);
+                        doc.setTextColor(0, 0, 0);
+                        const headerText = "Transmettre à :";
+                        const headerWidth = doc.getStringUnitWidth(headerText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+                        const headerX = (pageWidth - headerWidth) / 2;
+                        doc.text(headerText, headerX, finalY);
+
+                        finalY += 9;
+                        doc.setFontSize(12);
+                        const phrase1 = "- Direction de l'entreprise SAEGS";
+                        doc.text(phrase1, margin, finalY);
+
+                        const pdfBlob = doc.output('blob');
+                        generatedPdfBlob = pdfBlob;
+
+                        document.getElementById('previewPdfButton').style.display = 'inline-block';
+                    });
+                };
+            
+        
+                generatePdf();
+        
+                document.getElementById('sendPdfButton').addEventListener('click', () => {
+                    if (generatedPdfBlob) {
+                        const url = URL.createObjectURL(generatedPdfBlob);
+                        let pdfPreview = document.getElementById('pdfPreview');
+                        if (!pdfPreview) {
+                            pdfPreview = document.createElement('iframe');
+                            pdfPreview.id = 'pdfPreview';
+                            pdfPreview.style.width = '100%';
+                            pdfPreview.style.height = '600px';
+                            pdfPreview.style.border = '2px solid #ccc';
+                            document.body.appendChild(pdfPreview);
+                        }
+        
+                        pdfPreview.src = url;
+        
+                        const today = new Date();
+                        const formattedDate = today.toLocaleDateString('fr-FR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        }).replace(/\//g, '-');
+        
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `R.Journalier_du_${formattedDate}.pdf`;
+                        a.click();
+        
+                        URL.revokeObjectURL(url);
+                    } else {
+                        alert('Aucun PDF à télécharger. Veuillez d\'abord générer le PDF.');
+                    }
+                });
+        
+                document.getElementById('previewPdfButton').addEventListener('click', () => {
+                    if (generatedPdfBlob) {
+                        const pdfUrl = URL.createObjectURL(generatedPdfBlob);
+                        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                        loadingTask.promise.then((pdf) => {
+                            const pdfImagesContainer = document.getElementById('pdfImages');
+                            pdfImagesContainer.innerHTML = '';
+        
+                            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                                pdf.getPage(pageNum).then((page) => {
+                                    const scale = 1.5;
+                                    const viewport = page.getViewport({ scale });
+                                    const canvas = document.createElement('canvas');
+                                    const context = canvas.getContext('2d');
+                                    canvas.width = viewport.width;
+                                    canvas.height = viewport.height;
+        
+                                    const renderTask = page.render({
+                                        canvasContext: context,
+                                        viewport: viewport
+                                    });
+        
+                                    renderTask.promise.then(() => {
+                                        const img = document.createElement('img');
+                                        img.src = canvas.toDataURL();
+                                        img.style.marginBottom = '20px';
+                                        pdfImagesContainer.appendChild(img);
+                                    });
+                                });
+                            }
+        
+                            document.getElementById('pdfPreview').style.display = 'block';
+                            document.getElementById('sendPdfButton').style.display = 'inline-block';
+                        });
+                    } else {
+                        alert('Veuillez générer un PDF avant de l\'afficher.');
+                    }
+                });
+            });
+        </script>
+    </div>
+
+</body></html>
